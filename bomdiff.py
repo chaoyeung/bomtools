@@ -44,6 +44,8 @@ bom_name_b = bdf.iloc[0,2]
 bom_name_a_short = adf.iloc[0,1] 
 bom_name_b_short = bdf.iloc[0,1]
 
+print "boms loaded"
+
 
 d = pd.merge(adf,bdf,how='inner',on='Ref')
 a = adf[~adf.Ref.isin(d.Ref)]
