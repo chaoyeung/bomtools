@@ -45,8 +45,9 @@ bom_name_a_short = adf.iloc[0,1]
 bom_name_b_short = bdf.iloc[0,1]
 
 print "boms loaded"
+print "created a local branch"
 
-
+#find the ref only bom A and B
 d = pd.merge(adf,bdf,how='inner',on='Ref')
 a = adf[~adf.Ref.isin(d.Ref)]
 a = a.reset_index(drop=True)
