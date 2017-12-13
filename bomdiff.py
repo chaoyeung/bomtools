@@ -8,7 +8,7 @@ The difference report generated will have the 3 sections below:
     1. A list of the parts only in bom A
     2. A list of the parts only in bom B
     3. Ref show in bom A and B, but the comcode is different
-    
+
 """
 
 import glob
@@ -21,31 +21,28 @@ bdf = pd.read_csv(file[1])
 
 # Get the Version of the bom
 # Remove the last n characters from a string [:-n]
-adf.iat[0,2] = adf.iloc[0,1] + '_' + adf.iloc[0,2] + '_V' + adf.iloc[0,4][:-8]
-bdf.iat[0,2] = bdf.iloc[0,1] + '_' + bdf.iloc[0,2] + '_v' + bdf.iloc[0,4][:-8]
-
-adf.iat[0,1] = adf.iloc[0,1] + '_V' + adf.iloc[0,4][:-8]
-bdf.iat[0,1] = bdf.iloc[0,1] + '_V' + bdf.iloc[0,4][:-8]
 
 adf.iat[0,0] = 'TX03'
 bdf.iat[0,0] = 'TX03'
+
+adf.iat[0,1] = adf.iloc[0,1] + file[0]
+bdf.iat[0,1] = bdf.iloc[0,1] + file[1]
+
 
 # Drop the column Identity
 adf = adf.drop(['Quantity','Version'], axis = 1)
 bdf = bdf.drop(['Quantity','Version'], axis = 1)
 
-#Rename the Columns
+# Rename the Columns
 adf = adf.rename_axis({"Number": "Comcode", "Name": "Description","Reference Designator":"Ref"}, axis="columns")
 bdf = bdf.rename_axis({"Number": "Comcode", "Name": "Description","Reference Designator":"Ref"}, axis="columns")
 
 bom_name_a = adf.iloc[0,2]
 bom_name_b = bdf.iloc[0,2]
 
-bom_name_a_short = adf.iloc[0,1] 
+bom_name_a_short = adf.iloc[0,1]
 bom_name_b_short = bdf.iloc[0,1]
 
-print "boms loaded"
-print "created a local branch"
 
 #find the ref only bom A and B
 d = pd.merge(adf,bdf,how='inner',on='Ref')
