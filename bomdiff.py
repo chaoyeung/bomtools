@@ -8,75 +8,71 @@ The difference report generated will have the 3 sections below:
     1. A list of the parts only in bom A
     2. A list of the parts only in bom B
     3. Ref show in bom A and B, but the comcode is different
-
 """
 
 import glob
 import pandas as pd
-import time
 
-file = glob.glob("*.csv") #seach csv filr in current folder
-
-bom_name_a = file[0]
-bom_name_b = file[1]
+file = glob.glob("*.csv")
 
 adf = pd.read_csv(file[0])
 bdf = pd.read_csv(file[1])
 
-# Check the file format and set the header
+# Get the Version of the bom
+# Remove the last n characters from a string [:-n]
 
-adf.iat[0,0] = 'TX03' # Add TX03
+adf.iat[0,0] = 'TX03'
 bdf.iat[0,0] = 'TX03'
 
-adf.iat[0,1] = adf.iloc[0,1] + '_' + file[0]
-bdf.iat[0,1] = bdf.iloc[0,1] + '_' + file[1]
+adf.iat[0,1] = adf.iloc[0,1] + file[0]
+bdf.iat[0,1] = bdf.iloc[0,1] + file[1]
+
 
 # Drop the column Identity
-adf = adf.drop(['Quantity','Version','Name'], axis = 1)
-bdf = bdf.drop(['Quantity','Version','Name'], axis = 1)
+adf = adf.drop(['Quantity','Version'], axis = 1)
+bdf = bdf.drop(['Quantity','Version'], axis = 1)
 
-#Rename the Columns, short names
-adf = adf.rename_axis({"Number": "Comcode", "Reference Designator":"Ref"}, axis="columns")
-bdf = bdf.rename_axis({"Number": "Comcode", "Reference Designator":"Ref"}, axis="columns")
+# Rename the Columns
+adf = adf.rename_axis({"Number": "Comcode", "Name": "Description","Reference Designator":"Ref"}, axis="columns")
+bdf = bdf.rename_axis({"Number": "Comcode", "Name": "Description","Reference Designator":"Ref"}, axis="columns")
+
+bom_name_a = adf.iloc[0,2]
+bom_name_b = bdf.iloc[0,2]
+
+bom_name_a_short = adf.iloc[0,1]
+bom_name_b_short = bdf.iloc[0,1]
 
 
-d = pd.merge(adf,bdf,how='inner',on='Ref') #Retain only rows whose Ref is in both sets
-
-#All rows in adf that do not have a match in d
-#filtering the Refs only in adf
+#find the ref only bom A and B
+d = pd.merge(adf,bdf,how='inner',on='Ref')
 a = adf[~adf.Ref.isin(d.Ref)]
-
 a = a.reset_index(drop=True)
-
-#Filering the Refs only in bdf using the same method
 b = bdf[~bdf.Ref.isin(d.Ref)]
 b = b.reset_index(drop=True)
 
+y = pd.merge(adf,bdf)
+x = adf[~adf.Ref.isin(y.Ref)]
+y = bdf[~bdf.Ref.isin(y.Ref)]
+c = pd.merge(x,y,how='inner',on='Ref')
+c = c.reset_index(drop=True)
+
+excel_file_name = 'diff' + '_' + bom_name_a_short + '_' + bom_name_b_short + '.xlsx'
+writer = pd.ExcelWriter(excel_file_name)
+a.to_excel(writer,bom_name_a_short +' ONLY')
+b.to_excel(writer,bom_name_b_short +' ONLY')
+c.to_excel(writer,'Replacement')
+writer.save()
+
 print "--------------------------------------------------------------"
 print "Reference Designator only in " + bom_name_a
-print a
+print a.drop(['Description'], axis = 1)
 
 print "--------------------------------------------------------------"
 print "Reference Designator only in " + bom_name_b
-print b
-
-y = pd.merge(adf,bdf) #Retain rows have same ref and comcode
-x = adf[~adf.Ref.isin(y.Ref)] #different rows in adf,
-y = bdf[~bdf.Ref.isin(y.Ref)]
-c = pd.merge(x,y,how='inner',on='Ref') #Same ref but different Comcode
-c = c.reset_index(drop=True)
+print b.drop(['Description'], axis = 1)
 
 print "--------------------------------------------------------------"
 print "Same Reference Designator with different comcode"
-print c
-
-#add time stamp to xlsx file
-current_time = time.strftime("%Y%m%d%H%M%S",time.localtime())
+print c.drop(['Description_x','Description_y'], axis = 1)
 
 print "Compare reslut has been save to diff.xlsx in current directory"
-excel_file_name = current_time + '_diff' + '_' + bom_name_a+ '_' + bom_name_b + '.xlsx'
-writer = pd.ExcelWriter(excel_file_name)
-a.to_excel(writer,bom_name_a +' ONLY')
-b.to_excel(writer,bom_name_b +' ONLY')
-c.to_excel(writer,'Replacement')
-writer.save()
