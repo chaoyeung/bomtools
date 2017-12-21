@@ -2,8 +2,10 @@
 """
 Bom Compare Script
 
-This script read two boms exported form windchill in the format of *.csv and compare them to find the differneces.
-Use "Reference Designator" as the index for comparison, which is unique is a bom file.
+This script read two boms exported form windchill in the format of *.csv and 
+compare them to find the differneces.
+Use "Reference Designator" as the index for comparison, which is unique is a 
+bom file.
 The difference report generated will have the 3 sections below:
     1. A list of the parts only in bom A
     2. A list of the parts only in bom B
@@ -36,11 +38,13 @@ adf = adf.drop(['Quantity','Version','Name'], axis = 1)
 bdf = bdf.drop(['Quantity','Version','Name'], axis = 1)
 
 #Rename the Columns, short names
-adf = adf.rename_axis({"Number": "Comcode", "Reference Designator":"Ref"}, axis="columns")
-bdf = bdf.rename_axis({"Number": "Comcode", "Reference Designator":"Ref"}, axis="columns")
+adf = adf.rename_axis({"Number": "Comcode", "Reference Designator":"Ref"}, 
+                      axis="columns")
+bdf = bdf.rename_axis({"Number": "Comcode", "Reference Designator":"Ref"}, 
+                      axis="columns")
 
-
-d = pd.merge(adf,bdf,how='inner',on='Ref') #Retain only rows whose Ref is in both sets
+#Retain only rows whose Ref is in both sets
+d = pd.merge(adf,bdf,how='inner',on='Ref') 
 
 #All rows in adf that do not have a match in d
 #filtering the Refs only in adf
